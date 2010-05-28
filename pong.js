@@ -15,6 +15,11 @@
 		ball: null,
 		// cache of your paddle
 		you: null,
+		
+		resize: function(){
+			this.width	= window.innerWidth;
+			this.height = window.innerHeight;
+		},
 
 		init: function(){
 			$(document).bind('keydown', p.keypress);
@@ -32,7 +37,6 @@
 			this.timer = null;
 		},
 		keypress: function(e){
-		console.log( +new Date() );
 			switch( e.keyCode ){
 				case 00:
 				case 13:
@@ -103,6 +107,10 @@
 			}
 		}
 	};
+
+	$(window).resize(
+		$.proxy( p.resize, p )
+	);
 
 	$( p.init );
 })();
