@@ -15,9 +15,27 @@
 		ball: null,
 		// cache of your paddle
 		you: null,
+		// cache o the keys
+		key: {
+			up: false, down: false
+		},
+
+		// TODO: check if the ball is below the new window size		
+		resize: function(){
+			this.stop();
+
+			this.width	= window.innerWidth;
+			this.height = window.innerHeight;
+
+			this.start();
+		},
 
 		init: function(){
-			$(document).bind('keydown', p.keypress);
+			$(document).bind('keyup',
+				$.proxy( p.keyup, p )
+			).bind('keydown',
+				$.proxy( p.keydown, p )
+			);
 
 			p.ball = $('#ball');
 			p.you = $('#you');
@@ -31,29 +49,40 @@
 			clearInterval( this.timer );
 			this.timer = null;
 		},
-		keypress: function(e){
-		console.log( +new Date() );
+		keyup: function(e){
+			switch( e.keyCode ){
+				case 38:
+					this.key.up = false; break;
+				case 40:
+					this.key.down = false; break;
+				default:
+					console.log( 'UP: ', e.keyCode );
+			}
+		},
+		keydown: function(e){
+			this.key.up = this.key.down = false;
+
 			switch( e.keyCode ){
 				case 00:
-				case 13:
 				case 27:
-					p.timer === null ? p.start() : p.stop(); break;
+				case 32:
+					this.timer === null ? this.start() : this.stop(); break;
 				case 38:
-					p.User.up();
-					console.log( 'UP' ); break;
+					this.key.up = true; break;
 				case 40:
-					p.User.down();
-					console.log( 'DOWN' ); break;
+					this.key.down = true; break;
 				default:
 					console.log( e.keyCode );
 			}
 		},
 		gameplay: function(){
-			var pos = p.ball.position();
+			var pos = this.ball.position();
 
-			p.checkColisions( pos )
+			this.checkColisions( pos )
 
-			p.moveBall( pos );
+			this.moveBall( pos );
+
+			this.moveUser();
 		},
 		checkColisions: function(pos){
 			if( pos.top <= 0 || ( pos.top + 10 ) >= this.height ){
@@ -70,6 +99,10 @@
 				this._calcMove( 'x', pos.left ),
 				this._calcMove( 'y', pos.top )
 			);
+		},
+		moveUser: function(){
+			this.key.up && this.User.up();
+			this.key.down && this.User.down();
 		},
 		_move: function(x,y){
 			this.css({
@@ -91,18 +124,28 @@
 		},
 		//TODO: abstract this to a user class
 		User: {
+			isTop: function(){
+				
+			},
+			isBottom: function(){
+			
+			},
 			up: function(){
 				p.you.css({
-					top: ( p.you.position().top - p.speed * 2 ) + 'px'
+					top: ( p.you.position().top - p.speed ) + 'px'
 				});
 			},
 			down: function(){
 				p.you.css({
-					top: ( p.you.position().top + p.speed * 2 ) + 'px'
+					top: ( p.you.position().top + p.speed ) + 'px'
 				});
 			}
 		}
 	};
+
+	$(window).resize(
+		$.proxy( p.resize, p )
+	);
 
 	$( p.init );
 })();
