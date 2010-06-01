@@ -89,17 +89,16 @@
 			this.moveUser();
 		},
 		checkColisions: function(pos){
-			if( pos.top <= 0 || ( pos.top + 10 ) >= this.height ){
-				this.toggleY();
-			}
+			this.direction.y = pos.top <= 0 || this.height - pos.top - 10 < this.speed
+				? !this.direction.y : this.direction.y;
 
-			if( pos.left <= 0 || ( pos.left + 10 ) >= this.width ){
-				this.toggleX();
-			}
+			this.direction.x = pos.left <= 0 || this.width - pos.left - 10 < this.speed
+				? !this.direction.x : this.direction.x;
 
-			this.key.up	= this.key.up && this.User.position >= 5;
+			this.key.up	= this.key.up && this.User.position >= this.speed;
+
 			this.key.down = this.key.down
-				&& this.height - this.User.position - this.User.height > 5;
+				&& this.height - this.User.position - this.User.height > this.speed;
 		},
 		moveUser: function(){
 			this.key.up && this.User.up();
@@ -123,12 +122,6 @@
 					? ( value + this.speed )
 					: ( value - this.speed )
 			) + 'px';
-		},
-		toggleX: function(){
-			this.direction.x = !this.direction.x;
-		},
-		toggleY: function(){
-			this.direction.y = !this.direction.y;
 		},
 		User: {
 			position: 0,
