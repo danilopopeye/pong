@@ -3,6 +3,7 @@
 		// max size of stage
 		width: window.innerWidth,
 		height: window.innerHeight,
+
 		// timer id
 		timer: null,
 		// directions of the ball
@@ -24,12 +25,15 @@
 		resize: function(){
 			this.stop();
 
+			// stage sizes
 			this.width	= window.innerWidth;
 			this.height = window.innerHeight;
 
+			// user paddle size
+			this.User.height = this.you.outerHeight();
+
 			this.start();
 		},
-
 		init: function(){
 			$(document).bind('keyup',
 				$.proxy( p.keyup, p )
@@ -37,13 +41,17 @@
 				$.proxy( p.keydown, p )
 			);
 
-			p.ball = $('#ball');
-			p.you = $('#you');
+			this.ball = $('#ball');
+			this.you = $('#you');
 
-			p.start();
+			this.User.height = this.you.outerHeight();
+
+			this.start();
 		},
 		start: function(){
-			p.timer = setInterval( $.proxy( p.gameplay, p ), 10 );
+			this.timer = setInterval(
+				$.proxy( this.gameplay, this ), 10
+			);
 		},
 		stop: function(){
 			clearInterval( this.timer );
@@ -55,15 +63,13 @@
 					this.key.up = false; break;
 				case 40:
 					this.key.down = false; break;
-				default:
-					console.log( 'UP: ', e.keyCode );
 			}
 		},
 		keydown: function(e){
 			this.key.up = this.key.down = false;
 
 			switch( e.keyCode ){
-				case 00:
+				case 13:
 				case 27:
 				case 32:
 					this.timer === null ? this.start() : this.stop(); break;
@@ -71,8 +77,6 @@
 					this.key.up = true; break;
 				case 40:
 					this.key.down = true; break;
-				default:
-					console.log( e.keyCode );
 			}
 		},
 		gameplay: function(){
@@ -92,6 +96,14 @@
 			if( pos.left <= 0 || ( pos.left + 10 ) >= this.width ){
 				this.toggleX();
 			}
+
+			this.key.up	= this.key.up && this.User.position >= 5;
+			this.key.down = this.key.down
+				&& this.height - this.User.position - this.User.height > 5;
+		},
+		moveUser: function(){
+			this.key.up && this.User.up();
+			this.key.down && this.User.down();
 		},
 		moveBall: function(pos){
 			this._move.call(
@@ -99,10 +111,6 @@
 				this._calcMove( 'x', pos.left ),
 				this._calcMove( 'y', pos.top )
 			);
-		},
-		moveUser: function(){
-			this.key.up && this.User.up();
-			this.key.down && this.User.down();
 		},
 		_move: function(x,y){
 			this.css({
@@ -122,22 +130,17 @@
 		toggleY: function(){
 			this.direction.y = !this.direction.y;
 		},
-		//TODO: abstract this to a user class
 		User: {
-			isTop: function(){
-				
-			},
-			isBottom: function(){
-			
-			},
+			position: 0,
 			up: function(){
-				p.you.css({
-					top: ( p.you.position().top - p.speed ) + 'px'
-				});
+				this._move( p.speed * -1 );
 			},
 			down: function(){
+				this._move( p.speed );
+			},
+			_move: function(s){
 				p.you.css({
-					top: ( p.you.position().top + p.speed ) + 'px'
+					top: ( this.position = p.you.position().top + s ) + 'px'
 				});
 			}
 		}
@@ -147,5 +150,5 @@
 		$.proxy( p.resize, p )
 	);
 
-	$( p.init );
+	$( $.proxy( p.init, p ) );
 })();
