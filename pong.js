@@ -4,11 +4,15 @@
 		width: window.innerWidth,
 		height: window.innerHeight,
 
+		// debug option
+		debug: true,
+		// debug element
+		_debug: null,
 		// timer id
 		timer: null,
 		// directions of the ball
 		direction: {
-			x: true, y: false
+			x: true, y: true
 		},
 		// speed of the ball
 		speed: 5,
@@ -20,20 +24,11 @@
 		key: {
 			up: false, down: false
 		},
-
-		// TODO: check if the ball is below the new window size		
-		resize: function(){
-			this.stop();
-
-			// stage sizes
-			this.width	= window.innerWidth;
-			this.height = window.innerHeight;
-
-			// user paddle size
-			this.User.height = this.you.outerHeight();
-
-			this.start();
+		// keep the score counter
+		score: {
+			element: null, you: 0, cpu: 0
 		},
+
 		init: function(){
 			$(document).bind('keyup',
 				$.proxy( p.keyup, p )
@@ -41,10 +36,17 @@
 				$.proxy( p.keydown, p )
 			);
 
+			this.score.element = $('#score');
 			this.ball = $('#ball');
 			this.you = $('#you');
 
-			this.User.height = this.you.outerHeight();
+			this._debug = this.debug ? $('#debug') : !$('#debug').remove();
+
+			this.User.height	= this.you.outerHeight();
+			this.User.left		= this.you.position().left;
+
+			// set the threshold
+			this.width -= this.width % this.speed;
 
 			this.start();
 		},
@@ -82,23 +84,41 @@
 		gameplay: function(){
 			var pos = this.ball.position();
 
-			this.checkColisions( pos )
+			this.checkColisions( pos );
 
 			this.moveBall( pos );
 
 			this.moveUser();
+			
+			this.debug && this.updateDebug(pos);
 		},
 		checkColisions: function(pos){
-			this.direction.y = pos.top <= 0 || this.height - pos.top - 10 < this.speed
-				? !this.direction.y : this.direction.y;
+			var hitLeft = hitRight = false;
 
-			this.direction.x = pos.left <= 0 || this.width - pos.left - 10 < this.speed
+			if( pos.left + 10 >= this.width - 15 ){
+				hitRight = this.between(
+					pos.top + 5, this.User.top, this.User.top + this.User.height
+				);
+
+				!hitRight && pos.left == this.width && ++this.score.cpu && this.updateScore('cpu');
+			} else if( pos.left <= 15 ){
+				hitLeft = this.between(
+					pos.top + 5, this.User.top, this.User.top + this.User.height
+				);
+
+				!hitLeft && pos.left == 0 && ++this.score.you && this.updateScore('you');
+			}
+
+			this.direction.x = hitRight || ( pos.left <= 0 || this.width - pos.left < this.speed )
 				? !this.direction.x : this.direction.x;
 
-			this.key.up	= this.key.up && this.User.position >= this.speed;
+			this.direction.y = hitLeft || pos.top <= 0 || this.height - pos.top - 10 < this.speed
+				? !this.direction.y : this.direction.y;
+
+			this.key.up	= this.key.up && this.User.top >= this.speed;
 
 			this.key.down = this.key.down
-				&& this.height - this.User.position - this.User.height > this.speed;
+				&& this.height - this.User.top - this.User.height > this.speed;
 		},
 		moveUser: function(){
 			this.key.up && this.User.up();
@@ -124,7 +144,7 @@
 			) + 'px';
 		},
 		User: {
-			position: 0,
+			top: 0,
 			up: function(){
 				this._move( p.speed * -1 );
 			},
@@ -133,10 +153,37 @@
 			},
 			_move: function(s){
 				p.you.css({
-					top: ( this.position = p.you.position().top + s ) + 'px'
+					top: ( this.top = p.you.position().top + s ) + 'px'
 				});
 			}
-		}
+		},
+		updateScore: function(who){
+			this.score.element.find( '.' + who ).text( this.score[ who ] );
+		},
+		updateDebug: function(p){
+			this._debug.find('b')
+				.eq(0).text( p.left )
+			.end()
+				.eq(1).text( p.top )
+		},
+
+		// TODO: check if the ball is below the new window size		
+		resize: function(){
+			this.stop();
+
+			// stage sizes
+			this.width	= window.innerWidth;
+			this.height = window.innerHeight;
+
+			// user paddle size
+			this.User.height	= this.you.outerHeight();
+			this.User.left		= this.you.position().left;
+
+			this.start();
+		},
+		between: function(check,v1,v2){
+			return v1 <= check && check <= v2;
+		}	
 	};
 
 	$(window).resize(
