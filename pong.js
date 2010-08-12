@@ -42,8 +42,8 @@
 
 			this._debug = this.debug ? $('#debug') : !$('#debug').remove();
 
-			this.User.height	= 96;
-			this.User.left		= this.you.position().left;
+			this.User.height	= 95;
+			this.User.left		= 790;
 
 			this.start();
 		},
@@ -80,45 +80,36 @@
 		},
 		gameplay: function(){
 			var pos = this.ball.position();
+				pos.right = pos.left + 10;
+				pos.bottom = pos.top + 10;
 
-			this.moveUser();
-
-			this.moveBall( pos );
+			this.User.move();
 
 			this.checkColisions( pos );
+
+			this.moveBall( pos );
 
 			this.debug && this.updateDebug(pos);
 		},
 		checkColisions: function(pos){
-			var hitLeft = hitRight = false;
+			var hitLeft = hitRight = false,
+				left	= pos.left == 10,
+				right = pos.right + 10 == this.width,
+				hitWall = pos.left == 0 || pos.right == this.width;
 
-			if( pos.left + 10 >= this.width - 15 ){
-				hitRight = this.between(
-					pos.top + 5, this.User.top, this.User.top + this.User.height
-				);
+			hitRight = right && this.isHit( pos, this.User );
 
-				!hitRight && pos.left == this.width && ++this.score.cpu && this.updateScore('cpu');
-			} else if( pos.left <= 15 ){
-				hitLeft = this.between(
-					pos.top + 5, this.User.top, this.User.top + this.User.height
-				);
+			hitWall && this.updateScore( pos );
 
-				!hitLeft && pos.left == 0 && ++this.score.you && this.updateScore('you');
-			}
-
-			this.direction.x = hitRight || ( pos.left <= 0 || this.width - pos.left < this.speed )
+			this.direction.x = hitRight || hitLeft || hitWall
 				? !this.direction.x : this.direction.x;
 
-			this.direction.y = hitLeft || pos.top <= 0 || this.height - pos.top - 10 < this.speed
-				? !this.direction.y : this.direction.y;
+			this.direction.y = this.direction.y && pos.bottom == this.height
+				|| pos.top == 0 ? !this.direction.y : this.direction.y;
 
 			this.key.up	= this.key.up && this.User.top;
 
 			this.key.down = this.key.down && this.height - this.User.top - this.User.height > 0;
-		},
-		moveUser: function(){
-			this.key.up && this.User.up();
-			this.key.down && this.User.down();
 		},
 		moveBall: function(pos){
 			this._move.call(
@@ -141,19 +132,18 @@
 		},
 		User: {
 			top: 0,
-			up: function(){
-				this._move( p.speed * -1 );
-			},
-			down: function(){
-				this._move( p.speed );
-			},
-			_move: function(s){
-				p.you.css({
-					top: ( this.top = p.you.position().top + s ) + 'px'
+			move: function(){
+				var key = p.key, direction = key.up
+					? p.speed * -1 : key.down ? p.speed : 0;
+
+				direction && p.you.css({
+					top: ( this.top = this.top + direction ) + 'px'
 				});
 			}
 		},
-		updateScore: function(who){
+		updateScore: function( pos ){
+			var who = pos.left == 0 ? 'you' : 'cpu';
+			this.score[ who ] += 1;
 			this.score.element.find( '.' + who ).text( this.score[ who ] );
 		},
 		updateDebug: function(p){
@@ -162,8 +152,8 @@
 			.end()
 				.eq(1).text( p.top )
 		},
-		between: function(check,v1,v2){
-			return v1 <= check && check <= v2;
+		isHit: function(ball,player){
+			return ball.top + 10 > player.top && ball.top < player.top + player.height;
 		}	
 	};
 
