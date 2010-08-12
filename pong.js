@@ -1,11 +1,11 @@
 (function(){
 	var p = window.Pong = {
 		// max size of stage
-		width: window.innerWidth,
-		height: window.innerHeight,
+		width: 800,
+		height: 480,
 
 		// debug option
-		debug: true,
+		debug: false,
 		// debug element
 		_debug: null,
 		// timer id
@@ -42,17 +42,14 @@
 
 			this._debug = this.debug ? $('#debug') : !$('#debug').remove();
 
-			this.User.height	= this.you.outerHeight();
+			this.User.height	= 96;
 			this.User.left		= this.you.position().left;
-
-			// set the threshold
-			this.width -= this.width % this.speed;
 
 			this.start();
 		},
 		start: function(){
 			this.timer = setInterval(
-				$.proxy( this.gameplay, this ), 10
+				$.proxy( this.gameplay, this ), this.debug ? 100 : 10
 			);
 		},
 		stop: function(){
@@ -84,12 +81,12 @@
 		gameplay: function(){
 			var pos = this.ball.position();
 
-			this.checkColisions( pos );
+			this.moveUser();
 
 			this.moveBall( pos );
 
-			this.moveUser();
-			
+			this.checkColisions( pos );
+
 			this.debug && this.updateDebug(pos);
 		},
 		checkColisions: function(pos){
@@ -115,10 +112,9 @@
 			this.direction.y = hitLeft || pos.top <= 0 || this.height - pos.top - 10 < this.speed
 				? !this.direction.y : this.direction.y;
 
-			this.key.up	= this.key.up && this.User.top >= this.speed;
+			this.key.up	= this.key.up && this.User.top;
 
-			this.key.down = this.key.down
-				&& this.height - this.User.top - this.User.height > this.speed;
+			this.key.down = this.key.down && this.height - this.User.top - this.User.height > 0;
 		},
 		moveUser: function(){
 			this.key.up && this.User.up();
@@ -166,29 +162,10 @@
 			.end()
 				.eq(1).text( p.top )
 		},
-
-		// TODO: check if the ball is below the new window size		
-		resize: function(){
-			this.stop();
-
-			// stage sizes
-			this.width	= window.innerWidth;
-			this.height = window.innerHeight;
-
-			// user paddle size
-			this.User.height	= this.you.outerHeight();
-			this.User.left		= this.you.position().left;
-
-			this.start();
-		},
 		between: function(check,v1,v2){
 			return v1 <= check && check <= v2;
 		}	
 	};
-
-	$(window).resize(
-		$.proxy( p.resize, p )
-	);
 
 	$( $.proxy( p.init, p ) );
 })();
