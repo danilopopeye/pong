@@ -107,9 +107,9 @@
 			this.direction.y = this.direction.y && pos.bottom == this.height
 				|| pos.top == 0 ? !this.direction.y : this.direction.y;
 
-			this.key.up	= this.key.up && this.User.top;
+			this.key.up	= this.key.up;
 
-			this.key.down = this.key.down && this.height - this.User.top - this.User.height > 0;
+			this.key.down = this.key.down;
 		},
 		moveBall: function(pos){
 			this._move.call(
@@ -133,8 +133,13 @@
 		User: {
 			top: 0,
 			move: function(){
-				var key = p.key, direction = key.up
-					? p.speed * -1 : key.down ? p.speed : 0;
+				var key = p.key,
+					direction =
+						key.up && this.top
+							? p.speed * -1 :
+						key.down && p.height - this.top - this.height > 0
+							? p.speed :
+					0;
 
 				direction && p.you.css({
 					top: ( this.top = this.top + direction ) + 'px'
