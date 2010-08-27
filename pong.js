@@ -58,6 +58,11 @@
 			this.buttons.start.click( this.buttons.click.start );
 			this.buttons.stop.click( this.buttons.click.stop );
 
+			// enable the stop the first time
+			this.buttons.start.one('click', function(){
+				p.buttons.stop.enable();
+			});
+
 			this.score.element = $('#score');
 			this.ball = $('#ball');
 			this.you = $('#you');
@@ -183,14 +188,19 @@
 		buttons: {
 			click: {
 				start: function(){
-					p.start();
-					p.buttons.start.disable();
-					p.buttons.stop.enable();
+					var isPaused = p.timer === null;
+
+					p[ isPaused ? 'start' : 'stop' ]();
+
+					p.buttons.start.text(
+						isPaused ? 'Pause' : 'Start'
+					);
 				},
 				stop: function(){
+					//TODO: reset the game instead of just stop
 					p.stop();
 					p.buttons.stop.disable();
-					p.buttons.start.enable();
+					p.buttons.start.text('Start').enable();
 				}
 			}
 		}
