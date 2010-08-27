@@ -131,7 +131,7 @@
 			) + 'px';
 		},
 		User: {
-			top: 0,
+			top: 190,
 			move: function(){
 				var key = p.key,
 					direction =
