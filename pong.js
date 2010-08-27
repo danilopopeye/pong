@@ -36,6 +36,14 @@
 				$.proxy( p.keydown, p )
 			);
 
+			// buttons
+			this.buttons.start = $('#start');
+			this.buttons.stop = $('#stop');
+
+			// button click
+			this.buttons.start.click( this.buttons.click.start );
+			this.buttons.stop.click( this.buttons.click.stop );
+
 			this.score.element = $('#score');
 			this.ball = $('#ball');
 			this.you = $('#you');
@@ -44,8 +52,6 @@
 
 			this.User.height	= 95;
 			this.User.left		= 790;
-
-			this.start();
 		},
 		start: function(){
 			this.timer = setInterval(
@@ -159,7 +165,21 @@
 		},
 		isHit: function(ball,player){
 			return ball.top + 10 > player.top && ball.top < player.top + player.height;
-		}	
+		},
+		buttons: {
+			click: {
+				start: function(){
+					p.start();
+					p.buttons.start.attr('disabled',true);
+					p.buttons.stop.removeAttr('disabled');
+				},
+				stop: function(){
+					p.stop();
+					p.buttons.start.removeAttr('disabled');
+					p.buttons.stop.attr('disabled',true);
+				}
+			}
+		}
 	};
 
 	$( $.proxy( p.init, p ) );
