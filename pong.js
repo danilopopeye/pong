@@ -1,4 +1,18 @@
 (function(){
+	// enable a element
+	$.fn.enable = function(){
+		return this.each(function(){
+			$(this).removeAttr('disabled');
+		});
+	}
+
+	// disable a element
+	$.fn.disable = function(){
+		return this.each(function(){
+			$(this).attr('disabled',true);
+		});
+	}
+
 	var p = window.Pong = {
 		// max size of stage
 		width: 800,
@@ -170,13 +184,13 @@
 			click: {
 				start: function(){
 					p.start();
-					p.buttons.start.attr('disabled',true);
-					p.buttons.stop.removeAttr('disabled');
+					p.buttons.start.disable();
+					p.buttons.stop.enable();
 				},
 				stop: function(){
 					p.stop();
-					p.buttons.start.removeAttr('disabled');
-					p.buttons.stop.attr('disabled',true);
+					p.buttons.stop.disable();
+					p.buttons.start.enable();
 				}
 			}
 		}
