@@ -81,6 +81,24 @@
 			clearInterval( this.timer );
 			this.timer = null;
 		},
+		reset: function(){
+			this.stop();
+
+			this.score.element.find('span')
+				.hide(100).text('0').show(100);
+
+			this.score.you = this.score.cpu = 0;
+
+			this.User.top = 190;
+
+			this.ball.animate({
+				left: 395, top: 235
+			},'fast');
+
+			this.you.add( this.cpu ).animate({
+				top: 190
+			},'fast');
+		},
 		keyup: function(e){
 			switch( e.keyCode ){
 				case 38:
@@ -195,10 +213,11 @@
 					p.buttons.start.text(
 						isPaused ? 'Pause' : 'Start'
 					);
+
+					isPaused && p.buttons.stop.enable();
 				},
 				stop: function(){
-					//TODO: reset the game instead of just stop
-					p.stop();
+					p.reset();
 					p.buttons.stop.disable();
 					p.buttons.start.text('Start').enable();
 				}
