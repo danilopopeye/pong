@@ -1,4 +1,18 @@
 (function(){
+	// enable a element
+	$.fn.enable = function(){
+		return this.each(function(){
+			$(this).removeAttr('disabled');
+		});
+	}
+
+	// disable a element
+	$.fn.disable = function(){
+		return this.each(function(){
+			$(this).attr('disabled',true);
+		});
+	}
+
 	var p = window.Pong = {
 		// max size of stage
 		width: 800,
@@ -36,6 +50,19 @@
 				$.proxy( p.keydown, p )
 			);
 
+			// buttons
+			this.buttons.start = $('#start');
+			this.buttons.stop = $('#stop');
+
+			// button click
+			this.buttons.start.click( this.buttons.click.start );
+			this.buttons.stop.click( this.buttons.click.stop );
+
+			// enable the stop the first time
+			this.buttons.start.one('click', function(){
+				p.buttons.stop.enable();
+			});
+
 			this.score.element = $('#score');
 			this.ball = $('#ball');
 			this.you = $('#you');
@@ -44,8 +71,6 @@
 
 			this.User.height	= 95;
 			this.User.left		= 790;
-
-			this.start();
 		},
 		start: function(){
 			this.timer = setInterval(
@@ -55,6 +80,24 @@
 		stop: function(){
 			clearInterval( this.timer );
 			this.timer = null;
+		},
+		reset: function(){
+			this.stop();
+
+			this.score.element.find('span')
+				.hide(100).text('0').show(100);
+
+			this.score.you = this.score.cpu = 0;
+
+			this.User.top = 190;
+
+			this.ball.animate({
+				left: 395, top: 235
+			},'fast');
+
+			this.you.add( this.cpu ).animate({
+				top: 190
+			},'fast');
 		},
 		keyup: function(e){
 			switch( e.keyCode ){
@@ -131,7 +174,7 @@
 			) + 'px';
 		},
 		User: {
-			top: 0,
+			top: 190,
 			move: function(){
 				var key = p.key,
 					direction =
@@ -159,7 +202,27 @@
 		},
 		isHit: function(ball,player){
 			return ball.top + 10 > player.top && ball.top < player.top + player.height;
-		}	
+		},
+		buttons: {
+			click: {
+				start: function(){
+					var isPaused = p.timer === null;
+
+					p[ isPaused ? 'start' : 'stop' ]();
+
+					p.buttons.start.text(
+						isPaused ? 'Pause' : 'Start'
+					);
+
+					isPaused && p.buttons.stop.enable();
+				},
+				stop: function(){
+					p.reset();
+					p.buttons.stop.disable();
+					p.buttons.start.text('Start').enable();
+				}
+			}
+		}
 	};
 
 	$( $.proxy( p.init, p ) );
